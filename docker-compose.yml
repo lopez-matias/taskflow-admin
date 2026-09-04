@@ -1,0 +1,40 @@
+services:
+  application:
+    build:
+      context: .
+    init: true
+    environment:
+      ORANGEFLOW_APP_NAME: OrangeFlow · Internal Request Management
+      ORANGEFLOW_ENVIRONMENT: docker
+      ORANGEFLOW_DEBUG: "false"
+      ORANGEFLOW_DATABASE_URL: postgresql+psycopg://orangeflow:orangeflow@database:5432/orangeflow
+      ORANGEFLOW_ACTIVITY_LIMIT: "8"
+    command: >-
+      sh -c "alembic upgrade head &&
+      python -m app.seed &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: orangeflow
+      POSTGRES_USER: orangeflow
+      POSTGRES_PASSWORD: orangeflow
+    ports:
+      - "${ORANGEFLOW_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - orangeflow_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orangeflow -d orangeflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  orangeflow_postgres:

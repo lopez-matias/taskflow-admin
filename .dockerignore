@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+.env
+.pytest_cache
+.postgres-data
+.postgres-socket
+__pycache__
+*.py[cod]
+*.db
+docs
+tests
